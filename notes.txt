@@ -1,0 +1,9 @@
+Tokenizer notes:
+
+STRING- "insert text"
+NUMBER- 1, 2, 3...
+BOOLEAN- true, false
+IDENTIFIER- varName, funcName, propertyName
+OPERATOR- +, -, *, /, \%, =, !=, ==, <, >, !, <=, >=, (,), ++, --
+KEYWORD- const, type, string, number
+BLOCK- (), [], {}

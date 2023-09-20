@@ -1,0 +1,6 @@
+compile = "g++ main.cpp -o compiler.exe"
+run = "./compiler.exe"
+hidden = ["compiler.exe"]
+
+[nix]
+channel = "stable-22_11"
