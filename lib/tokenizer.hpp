@@ -23,7 +23,7 @@ using namespace std;
 void debug_token(vector<Token> arr) {
   uintmax_t num = 0;
   for(Token i : arr) {
-    cout << "Token " << num << ":\n";
+    cout << "\nToken " << num << ":\n";
     cout << "  type- " << i.type << '\n';
     cout << "  value- " << i.value << '\n';
     num++;
@@ -57,9 +57,11 @@ void tokenize
   fileline_parse(fileline, buffer, file_length);
   
   int line_number = 0;
+  int blocks_start_amnt = 0;
+  int blocks_end_amnt = 0;
   string current;
   
-  for(uintmax_t i = 0; i < file_length+1; i++) {
+  for(uintmax_t i = 0; i < file_length; i++) {
     
     char c = buffer[i];
     
@@ -97,7 +99,6 @@ void tokenize
         LOOP_C(buffer[i], TOKEN_NUMBERS, {
           if(buffer[i] == '.') {
             if(isDecimal) {
-              // error
               mderr_syntax(0, 0, "More than one decimal point");
             } else {
               isDecimal = true;
@@ -110,14 +111,68 @@ void tokenize
         if(!found) {
           token.value = s;
           token_arr.push_back(token);
+          i--;
           goto next_character;
         }
       }
     });
     
+    LOOP_C(c, TOKEN_BLOCKS_START, {
+      Token token;
+      token.type = BLOCK_START;
+      token.value = c;
+      token_arr.push_back(token);
+      blocks_start_amnt++;
+      goto next_character;
+    });
+    
+    LOOP_C(c, TOKEN_BLOCKS_END, {
+      Token token;
+      token.type = BLOCK_END;
+      token.value = c;
+      token_arr.push_back(token);
+      blocks_end_amnt++;
+      goto next_character;
+    });
+
+    {
+      bool is_whitespace = false;
+      LOOP_C(buffer[i], TOKEN_SEPERATOR, {
+        is_whitespace = true;
+      });
+      
+      if(!is_whitespace) {
+        string identifier;
+        while(i < file_length+1) {
+          bool ended = false;
+          LOOP_C(buffer[i], TOKEN_SEPERATOR, {
+            ended = true;
+          });
+          
+          if(ended) {
+            break;
+          } else {
+            identifier += buffer[i];
+            i++;
+          }
+        }
+        
+        Token token;
+        token.type = IDENTIFIER;
+        token.value = identifier;
+        token_arr.push_back(token);
+        cout << "Identifier: " << identifier << '\n';
+      }
+    }
     
     next_character:
     continue;
+  }
+  
+  if(blocks_start_amnt > blocks_end_amnt) {
+    mderr_syntax(0, 0, "Improperly closed blocks, there are more opening blocks then ending blocks");
+  } else if(blocks_start_amnt < blocks_end_amnt) {
+    mderr_syntax(0, 0, "Improperly closed blocks, there are more ending blocks than opening blocks");
   }
   
   debug_token(token_arr);

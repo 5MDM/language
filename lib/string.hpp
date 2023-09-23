@@ -1,7 +1,7 @@
 #ifndef STRING_HPP_
 #define STRING_HPP_
 #include "token.hpp"
-#include <stdexcept>
+#include "error.hpp"
 #include <string>
 
 uintmax_t parse_string
@@ -25,8 +25,9 @@ uintmax_t parse_string
     }
   }
   
-  /*if(i >= file_length) throw runtime_error("Unexpected EOF");
-  */
+  if(i >= file_length) mderr_syntax(0, 0, "Unexpected EOF");
+  
+  
   token->value = s;
   
   return i;
