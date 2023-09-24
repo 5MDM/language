@@ -6,7 +6,7 @@
 enum Token_type {
   STRING,
   NUMBER,
-  OPERATOR,
+  OPERATOR_DOUBLE,
   KEYWORD,
   BLOCK_START,
   BLOCK_END,
@@ -18,7 +18,7 @@ struct Token {
   string value;
 };
 
-const char TOKEN_OPERATORS[] = {'+', '-', '*', '/', '=', '!', '<', '>'};
+const char TOKEN_OPERATORS_DOUBLE[] = {'+', '-', '*', '/', '=', '!', '<', '>'};
 
 const char TOKEN_NUMBERS_START[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
 

@@ -16,7 +16,7 @@ uintmax_t parse_string
         case '\\': s += '\\'; break;
         case 'n': s += '\n'; break;
         case '"': s += '"'; break;
-        default: throw runtime_error("Invalid escape");
+        default: throw mderr_syntax(0, 0, "Invalid escape");
       }
     } else if(c != '"') {
       s += c;
@@ -25,7 +25,7 @@ uintmax_t parse_string
     }
   }
   
-  if(i >= file_length) mderr_syntax(0, 0, "Unexpected EOF");
+  if(i >= file_length) throw mderr_syntax(0, 0, "Unexpected EOF");
   
   
   token->value = s;

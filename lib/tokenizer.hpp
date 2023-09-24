@@ -2,6 +2,7 @@
 #define TOKENIZER_HPP_
 #include <string>
 #include <vector>
+#include <cstring>
 #include "error.hpp"
 #include "token.hpp"
 #include "string.hpp"
@@ -13,7 +14,7 @@
 
 #define LOOP_S(s, arr, f) { \
   for(int loop_i = 0; loop_i < sizeof(arr); loop_i++) { \
-    if(strcmp(arr[loop_i, s]) != 0) f \
+    if(s.compare(arr[loop_i]) == 0) f \
   } \
 }
 
@@ -51,7 +52,7 @@ void fileline_parse
 }
 
 void tokenize
-(char* buffer, uintmax_t file_length, vector<Token> token_arr) {
+(char* buffer, uintmax_t file_length, vector<Token>* token_arr) {
   
   vector<int> fileline;
   fileline_parse(fileline, buffer, file_length);
@@ -65,9 +66,9 @@ void tokenize
     
     char c = buffer[i];
     
-    LOOP_C(c, TOKEN_OPERATORS, {
+    LOOP_C(c, TOKEN_OPERATORS_DOUBLE, {
       Token token;
-      token.type = OPERATOR;
+      token.type = OPERATOR_DOUBLE;
       if(buffer[i+1] == '=') {
         string s;
         s += c;
@@ -78,14 +79,14 @@ void tokenize
         token.value = c;
       }
     
-      token_arr.push_back(token);
+      token_arr->push_back(token);
       goto next_character;
     });
     
     if(c == '"') {
       Token token;
       i = parse_string(&token, buffer, i, file_length);
-      token_arr.push_back(token);
+      token_arr->push_back(token);
       goto next_character;
     }
     
@@ -99,18 +100,19 @@ void tokenize
         LOOP_C(buffer[i], TOKEN_NUMBERS, {
           if(buffer[i] == '.') {
             if(isDecimal) {
-              mderr_syntax(0, 0, "More than one decimal point");
+              throw mderr_syntax(0, 0, "More than one decimal point");
             } else {
               isDecimal = true;
             }
           }
           s += buffer[i++];
           found = true;
+          break;
         });
         
         if(!found) {
           token.value = s;
-          token_arr.push_back(token);
+          token_arr->push_back(token);
           i--;
           goto next_character;
         }
@@ -121,7 +123,7 @@ void tokenize
       Token token;
       token.type = BLOCK_START;
       token.value = c;
-      token_arr.push_back(token);
+      token_arr->push_back(token);
       blocks_start_amnt++;
       goto next_character;
     });
@@ -130,7 +132,7 @@ void tokenize
       Token token;
       token.type = BLOCK_END;
       token.value = c;
-      token_arr.push_back(token);
+      token_arr->push_back(token);
       blocks_end_amnt++;
       goto next_character;
     });
@@ -139,6 +141,7 @@ void tokenize
       bool is_whitespace = false;
       LOOP_C(buffer[i], TOKEN_SEPERATOR, {
         is_whitespace = true;
+        break;
       });
       
       if(!is_whitespace) {
@@ -158,10 +161,22 @@ void tokenize
         }
         
         Token token;
-        token.type = IDENTIFIER;
         token.value = identifier;
-        token_arr.push_back(token);
-        cout << "Identifier: " << identifier << '\n';
+        
+        bool isKeyword = false;
+        LOOP_S(identifier, TOKEN_KEYWORDS, {
+          isKeyword = true;
+          break;
+        });
+        
+        if(isKeyword) {
+          token.type = KEYWORD;
+          cout << "Keyword: " << identifier << '\n';
+        } else {
+          token.type = IDENTIFIER;
+          cout << "Identifier: " << identifier << '\n';
+        }
+        token_arr->push_back(token);
       }
     }
     
@@ -170,12 +185,10 @@ void tokenize
   }
   
   if(blocks_start_amnt > blocks_end_amnt) {
-    mderr_syntax(0, 0, "Improperly closed blocks, there are more opening blocks then ending blocks");
+    throw mderr_syntax(0, 0, "Improperly closed blocks, there are more opening blocks then ending blocks");
   } else if(blocks_start_amnt < blocks_end_amnt) {
-    mderr_syntax(0, 0, "Improperly closed blocks, there are more ending blocks than opening blocks");
+    throw mderr_syntax(0, 0, "Improperly closed blocks, there are more ending blocks than opening blocks");
   }
-  
-  debug_token(token_arr);
 }
 
 #endif

@@ -3,6 +3,7 @@
 #include <vector>
 #include "lib/read_file.hpp"
 #include "lib/tokenizer.hpp"
+#include "lib/syntax_analyzer.hpp"
 
 using namespace std;
 
@@ -13,8 +14,14 @@ int main() {
   char main_file[file_size];
   read_file(main_file, file_name, file_size);
   
-  vector<Token> token_arr;
-  tokenize(main_file, file_size, token_arr);
+  try {
+    vector<Token> token_arr;
+    tokenize(main_file, file_size, &token_arr);
+    cout << token_arr.size() << '\n';
+    analyze_syntax(token_arr);
+  } catch(const string err) {
+    cout << err << '\n';
+  }
   
   return 0;
 }
