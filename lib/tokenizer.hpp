@@ -21,12 +21,14 @@
 
 using namespace std;
 
-void debug_token(vector<Token> arr) {
+void debug_token(vector<Token>* arr) {
   uintmax_t num = 0;
-  for(Token i : arr) {
+  size_t size = arr->size();
+  for(int i = 0; i != size; i++) {
+    Token e = (*arr)[i];
     cout << "\nToken " << num << ":\n";
-    cout << "  type- " << i.type << '\n';
-    cout << "  value- " << i.value << '\n';
+    cout << "  type- " << e.type << '\n';
+    cout << "  value- " << e.value << '\n';
     num++;
   }
 }
@@ -66,16 +68,25 @@ void tokenize
     
     char c = buffer[i];
     
+    if(c == ';') {
+      Token token;
+      token.value = ";";
+      token.type = SEMICOLON;
+      token_arr->push_back(token);
+      goto next_character;
+    }
+    
     LOOP_C(c, TOKEN_OPERATORS_DOUBLE, {
       Token token;
-      token.type = OPERATOR_DOUBLE;
       if(buffer[i+1] == '=') {
         string s;
         s += c;
         s += '=';
+        token.type = OPERATOR_DOUBLE_ASSIGNMENT;
         token.value = s;
         i++;
       } else {
+        token.type = OPERATOR_DOUBLE;
         token.value = c;
       }
     
@@ -164,17 +175,22 @@ void tokenize
         token.value = identifier;
         
         bool isKeyword = false;
-        LOOP_S(identifier, TOKEN_KEYWORDS, {
+        /*LOOP_S(identifier, TOKEN_KEYWORDS, {
           isKeyword = true;
+          
           break;
-        });
+        });*/
+        for(int loop_i = 0; loop_i < sizeof(TOKEN_KEYWORDS) / sizeof(TOKEN_KEYWORDS[0]); loop_i++) {
+          if(identifier.compare(TOKEN_KEYWORDS[loop_i]) == 0) {
+            isKeyword = true;
+            break;
+          }
+        }
         
         if(isKeyword) {
           token.type = KEYWORD;
-          cout << "Keyword: " << identifier << '\n';
         } else {
           token.type = IDENTIFIER;
-          cout << "Identifier: " << identifier << '\n';
         }
         token_arr->push_back(token);
       }
@@ -189,6 +205,8 @@ void tokenize
   } else if(blocks_start_amnt < blocks_end_amnt) {
     throw mderr_syntax(0, 0, "Improperly closed blocks, there are more ending blocks than opening blocks");
   }
+  
+  debug_token(token_arr);
 }
 
 #endif

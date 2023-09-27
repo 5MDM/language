@@ -17,7 +17,6 @@ int main() {
   try {
     vector<Token> token_arr;
     tokenize(main_file, file_size, &token_arr);
-    cout << token_arr.size() << '\n';
     analyze_syntax(token_arr);
   } catch(const string err) {
     cout << err << '\n';
